@@ -22,10 +22,22 @@ export async function usersRoutes(app: FastifyInstance) {
 
     const userId = randomUUID()
 
+    let sessionId = request.cookies.sessionId
+
+    if (!sessionId) {
+      sessionId = randomUUID()
+
+      reply.cookie('sessionId', sessionId, {
+        path: '/',
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+      })
+    }
+
     await knex('users').insert({
       id: userId,
       name,
       email,
+      session_id: sessionId,
     })
 
     return reply.status(201).send({ id: userId })

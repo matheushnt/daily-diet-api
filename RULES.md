@@ -14,7 +14,7 @@
 
 
 # Regras de Negócio
-- [ ] Deve ser possível identificar o usuário entre as requisições;
+- [x] Deve ser possível identificar o usuário entre as requisições;
 - [ ] Deve ser possível recuperar as métricas de um usuário:
     - Quantidade total de refeições registradas;
     - Quantidade total de refeições dentro da dieta;
