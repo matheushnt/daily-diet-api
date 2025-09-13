@@ -39,12 +39,12 @@ export async function mealsRoutes(app: FastifyInstance) {
   app.get('/', { preHandler: [checkSessionIdExists] }, async (request) => {
     const sessionId = request.cookies.sessionId
 
-    const user = await knex('users')
+    const userBySessionId = await knex('users')
       .where('session_id', sessionId)
       .first()
 
     const mealsUser = await knex('meals')
-      .where('user_id', user?.id)
+      .where('user_id', userBySessionId?.id)
       .select()
 
     return { meals: mealsUser }
@@ -59,12 +59,12 @@ export async function mealsRoutes(app: FastifyInstance) {
 
     const { id } = getMealParamsSchema.parse(request.params)
 
-    const user = await knex('users')
+    const userBySessionId = await knex('users')
       .where('session_id', sessionId)
       .first()
 
     const mealUser = await knex('meals')
-      .where({ id, user_id: user?.id })
+      .where({ id, user_id: userBySessionId?.id })
       .first()
 
     if (!mealUser) {
