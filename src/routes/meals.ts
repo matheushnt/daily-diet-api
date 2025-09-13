@@ -29,7 +29,7 @@ export async function mealsRoutes(app: FastifyInstance) {
         name,
         description,
         is_on_diet: isOnDiet,
-        datetime,
+        datetime: datetime.getTime(),
         user_id: userBySessionId?.id,
       })
 
@@ -44,7 +44,7 @@ export async function mealsRoutes(app: FastifyInstance) {
       .first()
 
     const mealsUser = await knex('meals')
-      .where('user_id', user.id)
+      .where('user_id', user?.id)
       .select()
 
     return { meals: mealsUser }
