@@ -49,4 +49,28 @@ export async function mealsRoutes(app: FastifyInstance) {
 
     return { meals: mealsUser }
   })
+
+  app.get('/:id', async (request, reply) => {
+    const sessionId = request.cookies.sessionId
+
+    const getMealParamsSchema = z.object({
+      id: z.uuid(),
+    })
+
+    const { id } = getMealParamsSchema.parse(request.params)
+
+    const user = await knex('users')
+      .where('session_id', sessionId)
+      .first()
+
+    const mealUser = await knex('meals')
+      .where({ id, user_id: user?.id })
+      .first()
+
+    if (!mealUser) {
+      return reply.status(404).send({ message: 'Meal not found.' })
+    }
+
+    return { meal: mealUser }
+  })
 }
