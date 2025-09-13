@@ -2,9 +2,10 @@ import { FastifyInstance } from 'fastify'
 import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
 import { knex } from '../database'
+import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
 
 export async function mealsRoutes(app: FastifyInstance) {
-  app.post('/', async (request, reply) => {
+  app.post('/', { preHandler: [checkSessionIdExists] }, async (request, reply) => {
     const createMealBodySchema = z.object({
       name: z.string(),
       description: z.string(),
@@ -17,10 +18,6 @@ export async function mealsRoutes(app: FastifyInstance) {
     const mealId = randomUUID()
 
     const sessionId = request.cookies.sessionId
-
-    if (!sessionId) {
-      return reply.status(401).send({ message: 'Unauthorized.' })
-    }
 
     const userBySessionId = await knex('users')
       .where('session_id', sessionId)
@@ -39,12 +36,8 @@ export async function mealsRoutes(app: FastifyInstance) {
     return reply.status(201).send({ id: mealId })
   })
 
-  app.get('/', async (request, reply) => {
+  app.get('/', { preHandler: [checkSessionIdExists] }, async (request) => {
     const sessionId = request.cookies.sessionId
-
-    if (!sessionId) {
-      return reply.status(401).send({ message: 'Unauthorized.' })
-    }
 
     const user = await knex('users')
       .where('session_id', sessionId)
