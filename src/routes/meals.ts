@@ -38,4 +38,22 @@ export async function mealsRoutes(app: FastifyInstance) {
 
     return reply.status(201).send({ id: mealId })
   })
+
+  app.get('/', async (request, reply) => {
+    const sessionId = request.cookies.sessionId
+
+    if (!sessionId) {
+      return reply.status(401).send({ message: 'Unauthorized.' })
+    }
+
+    const user = await knex('users')
+      .where('session_id', sessionId)
+      .first()
+
+    const mealsUser = await knex('meals')
+      .where('user_id', user.id)
+      .select()
+
+    return { meals: mealsUser }
+  })
 }
