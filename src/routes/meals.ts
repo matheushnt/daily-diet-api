@@ -125,4 +125,52 @@ export async function mealsRoutes(app: FastifyInstance) {
 
     return reply.status(204).send()
   })
+
+  app.get('/metrics', { preHandler: [checkSessionIdExists] }, async (request) => {
+    const sessionId = request.cookies.sessionId
+
+    const userBySessionId = await knex('users')
+      .where('session_id', sessionId)
+      .first()
+
+    const totalMeals = await knex('meals')
+      .count('* as total')
+      .where('user_id', userBySessionId?.id)
+      .first()
+
+    const totalOnDiet = await knex('meals')
+      .count('* as total')
+      .where({
+        is_on_diet: true,
+        user_id: userBySessionId?.id,
+      })
+      .first()
+
+    const totalOffDiet = await knex('meals')
+      .count('* as total')
+      .where({
+        is_on_diet: false,
+        user_id: userBySessionId?.id,
+      })
+      .first()
+
+    const mealsUser = await knex('meals')
+      .where('user_id', userBySessionId?.id)
+      .orderBy('criated_at', 'asc')
+      .select('is_on_diet')
+
+    let currentSequence = 0
+    let bestSequence = 0
+
+    for (const meal of mealsUser) {
+      if (meal.is_on_diet) {
+        currentSequence++
+        bestSequence = Math.max(currentSequence, bestSequence)
+      } else {
+        currentSequence = 0
+      }
+    }
+
+    return { totalMeals, totalOnDiet, totalOffDiet, bestSequence }
+  })
 }
