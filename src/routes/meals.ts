@@ -6,14 +6,14 @@ import { checkSessionIdExists } from '../middlewares/check-session-id-exists'
 
 export async function mealsRoutes(app: FastifyInstance) {
   app.post('/', { preHandler: [checkSessionIdExists] }, async (request, reply) => {
-    const createMealBodySchema = z.object({
+    const mealBodySchema = z.object({
       name: z.string(),
       description: z.string(),
       datetime: z.coerce.date(),
       isOnDiet: z.boolean(),
     })
 
-    const { name, description, datetime, isOnDiet } = createMealBodySchema.parse(request.body)
+    const { name, description, datetime, isOnDiet } = mealBodySchema.parse(request.body)
 
     const mealId = randomUUID()
 
@@ -50,21 +50,15 @@ export async function mealsRoutes(app: FastifyInstance) {
     return { meals: mealsUser }
   })
 
-  app.get('/:id', async (request, reply) => {
-    const sessionId = request.cookies.sessionId
-
-    const getMealParamsSchema = z.object({
+  app.get('/:id', { preHandler: [checkSessionIdExists] }, async (request, reply) => {
+    const mealParamsSchema = z.object({
       id: z.uuid(),
     })
 
-    const { id } = getMealParamsSchema.parse(request.params)
-
-    const userBySessionId = await knex('users')
-      .where('session_id', sessionId)
-      .first()
+    const { id } = mealParamsSchema.parse(request.params)
 
     const mealUser = await knex('meals')
-      .where({ id, user_id: userBySessionId?.id })
+      .where('id', id)
       .first()
 
     if (!mealUser) {
@@ -75,29 +69,23 @@ export async function mealsRoutes(app: FastifyInstance) {
   })
 
   app.put('/:id', { preHandler: [checkSessionIdExists] }, async (request, reply) => {
-    const sessionId = request.cookies.sessionId
-
-    const getMealParamsSchema = z.object({
+    const mealParamsSchema = z.object({
       id: z.uuid(),
     })
 
-    const { id } = getMealParamsSchema.parse(request.params)
+    const { id } = mealParamsSchema.parse(request.params)
 
-    const putMealBodySchema = z.object({
+    const mealBodySchema = z.object({
       name: z.string(),
       description: z.string(),
       datetime: z.coerce.date(),
       isOnDiet: z.boolean(),
     })
 
-    const { name, description, datetime, isOnDiet } = putMealBodySchema.parse(request.body)
-
-    const userBySessionId = await knex('users')
-      .where('session_id', sessionId)
-      .first()
+    const { name, description, datetime, isOnDiet } = mealBodySchema.parse(request.body)
 
     const mealUser = await knex('meals')
-      .where({ id, user_id: userBySessionId?.id })
+      .where('id', id)
       .first()
 
     if (!mealUser) {
@@ -105,7 +93,7 @@ export async function mealsRoutes(app: FastifyInstance) {
     }
 
     await knex('meals')
-      .where({ id, user_id: userBySessionId?.id })
+      .where('id', id)
       .update({
         name,
         description,
