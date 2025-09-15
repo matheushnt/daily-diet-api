@@ -18,16 +18,16 @@ describe('Meals routes', () => {
   })
 
   it('should be able to create a new meal', async () => {
-    const createUser = await request(app.server)
+    const createUserResponse = await request(app.server)
       .post('/users')
       .send({
         name: 'Vitor Santos',
         email: 'vitorsantos@exmaple.com',
       })
 
-    const cookie = createUser.get('Set-Cookie')
+    const cookie = createUserResponse.get('Set-Cookie')
 
-    const response = await request(app.server)
+    const createMealResponse = await request(app.server)
       .post('/meals')
       .set('Cookie', cookie ?? [])
       .send({
@@ -37,14 +37,14 @@ describe('Meals routes', () => {
         datetime: new Date(),
       })
 
-    expect(response.statusCode).toEqual(201)
-    expect(response.body).toEqual({
+    expect(createMealResponse.statusCode).toEqual(201)
+    expect(createMealResponse.body).toEqual({
       id: expect.any(String),
     })
   })
 
   it('should be able to get list all meals from a user', async () => {
-    const createUser = await request(app.server)
+    const createUserResponse = await request(app.server)
       .post('/users')
       .send({
         name: 'Vitor Santos',
@@ -52,7 +52,7 @@ describe('Meals routes', () => {
       })
       .expect(201)
 
-    const cookie = createUser.get('Set-Cookie')
+    const cookie = createUserResponse.get('Set-Cookie')
 
     await request(app.server)
       .post('/meals')
@@ -76,12 +76,12 @@ describe('Meals routes', () => {
       })
       .expect(201)
 
-    const getMeals = await request(app.server)
+    const getMealsResponse = await request(app.server)
       .get('/meals')
       .set('Cookie', cookie ?? [])
       .expect(200)
 
-    expect(getMeals.body.meals).toHaveLength(2)
+    expect(getMealsResponse.body.meals).toHaveLength(2)
   })
 
   it('should be able to get a specific meal', async () => {
