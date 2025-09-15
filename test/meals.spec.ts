@@ -198,4 +198,61 @@ describe('Meals routes', () => {
       expect.objectContaining({ message: 'Meal not found.' }),
     )
   })
+
+  it('should be able to get metrics from a user', async () => {
+    const createUserResponse = await request(app.server)
+      .post('/users')
+      .send({
+        name: 'Vitor Santos',
+        email: 'vitorsantos@exmaple.com',
+      })
+      .expect(201)
+
+    const cookie = createUserResponse.get('Set-Cookie')
+
+    await Promise.all([
+      request(app.server)
+        .post('/meals')
+        .set('Cookie', cookie ?? [])
+        .send({
+          name: 'Salada de fruta',
+          description: 'Durante o almoço, comi uma salada de fruta',
+          isOnDiet: true,
+          datetime: new Date(),
+        })
+        .expect(201),
+      request(app.server)
+        .post('/meals')
+        .set('Cookie', cookie ?? [])
+        .send({
+          name: 'Salada de maionese',
+          description: 'Durante o almoço, comi uma salada de maionese',
+          isOnDiet: true,
+          datetime: new Date(),
+        })
+        .expect(201),
+      request(app.server)
+        .post('/meals')
+        .set('Cookie', cookie ?? [])
+        .send({
+          name: 'Pastel de frango catupiry',
+          description: 'No lanche da tarde, comi uma Pastel de frango catupiry',
+          isOnDiet: false,
+          datetime: new Date(),
+        })
+        .expect(201),
+    ])
+
+    const getMetricsResponse = await request(app.server)
+      .get('/meals/metrics')
+      .set('Cookie', cookie ?? [])
+      .expect(200)
+
+    expect(getMetricsResponse.body)
+
+    expect(getMetricsResponse.body.totalMeals.total).toEqual(3)
+    expect(getMetricsResponse.body.totalOnDiet.total).toEqual(2)
+    expect(getMetricsResponse.body.totalOffDiet.total).toEqual(1)
+    expect(getMetricsResponse.body.bestSequence).toEqual(2)
+  })
 })
