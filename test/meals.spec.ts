@@ -83,4 +83,38 @@ describe('Meals routes', () => {
 
     expect(getMeals.body.meals).toHaveLength(2)
   })
+
+  it('should be able to get a specific meal', async () => {
+    const createUserResponse = await request(app.server)
+      .post('/users')
+      .send({
+        name: 'Vitor Santos',
+        email: 'vitorsantos@exmaple.com',
+      })
+      .expect(201)
+
+    const cookie = createUserResponse.get('Set-Cookie')
+
+    const createMealResponse = await request(app.server)
+      .post('/meals')
+      .set('Cookie', cookie ?? [])
+      .send({
+        name: 'Salada de fruta',
+        description: 'Durante o almoço, comi uma salada de fruta',
+        isOnDiet: true,
+        datetime: new Date(),
+      })
+      .expect(201)
+
+    const { id: mealId } = createMealResponse.body
+
+    const getMealByIdResponse = await request(app.server)
+      .get(`/meals/${mealId}`)
+      .set('Cookie', cookie ?? [])
+      .expect(200)
+
+    console.log(getMealByIdResponse.body.meal.id, mealId)
+
+    expect(getMealByIdResponse.body.meal.id).toEqual(mealId)
+  })
 })
