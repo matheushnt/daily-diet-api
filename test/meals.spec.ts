@@ -160,4 +160,42 @@ describe('Meals routes', () => {
     expect(getMealByIdResponse.body.meal).toHaveProperty('name', 'Torta de limão')
     expect(getMealByIdResponse.body.meal).toHaveProperty('description', 'Comi uma torta de limão com a minha vó')
   })
+
+  it('should be able to delete a meal', async () => {
+    const createUserResponse = await request(app.server)
+      .post('/users')
+      .send({
+        name: 'Vitor Santos',
+        email: 'vitorsantos@exmaple.com',
+      })
+      .expect(201)
+
+    const cookie = createUserResponse.get('Set-Cookie')
+
+    const createMealResponse = await request(app.server)
+      .post('/meals')
+      .set('Cookie', cookie ?? [])
+      .send({
+        name: 'Salada de fruta',
+        description: 'Durante o almoço, comi uma salada de fruta',
+        isOnDiet: true,
+        datetime: new Date(),
+      })
+      .expect(201)
+
+    const { id: mealId } = createMealResponse.body
+
+    await request(app.server)
+      .delete(`/meals/${mealId}`)
+      .set('Cookie', cookie ?? [])
+
+    const getMealByIdResponse = await request(app.server)
+      .get(`/meals/${mealId}`)
+      .set('Cookie', cookie ?? [])
+
+    expect(getMealByIdResponse.statusCode).toEqual(404)
+    expect(getMealByIdResponse.body).toEqual(
+      expect.objectContaining({ message: 'Meal not found.' }),
+    )
+  })
 })
