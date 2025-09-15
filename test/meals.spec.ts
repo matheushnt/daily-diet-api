@@ -228,7 +228,7 @@ describe('Meals routes', () => {
           name: 'Salada de maionese',
           description: 'Durante o almoço, comi uma salada de maionese',
           isOnDiet: true,
-          datetime: new Date(),
+          datetime: new Date(new Date(Date.now() + 1000 * 60 * 60 * 24)), // Um dia depois
         })
         .expect(201),
       request(app.server)
@@ -238,7 +238,7 @@ describe('Meals routes', () => {
           name: 'Pastel de frango catupiry',
           description: 'No lanche da tarde, comi uma Pastel de frango catupiry',
           isOnDiet: false,
-          datetime: new Date(),
+          datetime: new Date(Date.now() + 1000 * 60 * 60 * 48), // Dois dias depois
         })
         .expect(201),
     ])
@@ -248,11 +248,13 @@ describe('Meals routes', () => {
       .set('Cookie', cookie ?? [])
       .expect(200)
 
-    expect(getMetricsResponse.body)
-
-    expect(getMetricsResponse.body.totalMeals.total).toEqual(3)
-    expect(getMetricsResponse.body.totalOnDiet.total).toEqual(2)
-    expect(getMetricsResponse.body.totalOffDiet.total).toEqual(1)
-    expect(getMetricsResponse.body.bestSequence).toEqual(2)
+    expect(getMetricsResponse.body).toEqual(
+      expect.objectContaining({
+        totalMeals: 3,
+        totalOnDiet: 2,
+        totalOffDiet: 1,
+        bestSequence: 2,
+      }),
+    )
   })
 })
