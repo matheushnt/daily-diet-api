@@ -29,7 +29,7 @@ Os requisitos funcionais e regras de negócio estão documentados em `RULES.md`.
 ```mermaid
 sequenceDiagram
   autonumber
-  participant C as Cliente
+  participant C as Usuário
   participant API as Daily Diet API
   participant DB as Banco (SQLite)
 
